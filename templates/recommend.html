@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Recommender System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #1e1e1e 75%, #2a2a2a 100%);
+            min-height: 100vh;
+            color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(169, 169, 169, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Navigation */
+        .navbar {
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(169, 169, 169, 0.2);
+            padding: 1.2rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f5f5f5;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            color: #a9a9a9;
+            transform: scale(1.05);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: #d3d3d3;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-weight: 500;
+            background: rgba(169, 169, 169, 0.1);
+            border: 1px solid rgba(169, 169, 169, 0.2);
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(169, 169, 169, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-links a:hover::before {
+            left: 100%;
+        }
+
+        .nav-links a:hover {
+            background: rgba(169, 169, 169, 0.2);
+            transform: translateY(-2px);
+            color: #f5f5f5;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* Header Section */
+        .header-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header-section h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #f5f5f5, #d3d3d3, #a9a9a9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(169, 169, 169, 0.4)); }
+            to { filter: drop-shadow(0 0 20px rgba(169, 169, 169, 0.6)); }
+        }
+
+        /* Search Form */
+        .search-form {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 2.5rem;
+            border: 1px solid rgba(169, 169, 169, 0.3);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-control {
+            background: rgba(45, 45, 45, 0.8);
+            border: 2px solid rgba(169, 169, 169, 0.3);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            color: #f5f5f5;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(169, 169, 169, 0.6);
+            box-shadow: 0 0 20px rgba(169, 169, 169, 0.2);
+            background: rgba(45, 45, 45, 0.9);
+        }
+
+        .form-control::placeholder {
+            color: #a9a9a9;
+        }
+
+        .btn-submit {
+            background: linear-gradient(45deg, #4a4a4a, #6a6a6a);
+            border: none;
+            color: #f5f5f5;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-submit:hover::before {
+            left: 100%;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(45deg, #5a5a5a, #7a7a7a);
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        /* Book Card */
+        .book-card {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(169, 169, 169, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(169, 169, 169, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .book-card:hover::before {
+            left: 100%;
+        }
+
+        .book-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border-color: rgba(169, 169, 169, 0.5);
+        }
+
+        .card-img-top {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .book-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+
+        .book-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f5f5f5;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .book-author {
+            color: #a9a9a9;
+            font-size: 0.95rem;
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 0.5rem;
+            }
+
+            .header-section h1 {
+                font-size: 2.5rem;
+            }
+
+            .search-form {
+                margin: 0 1rem 3rem;
+                padding: 2rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        /* Animation for cards */
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(50px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* Error Message Styling */
+        .error-message {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            border: 1px solid rgba(169, 169, 169, 0.3);
+            text-align: center;
+            max-width: 600px;
+            margin: 2rem auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .error-content i.fas.fa-search {
+            font-size: 3rem;
+            color: #a9a9a9;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .error-content h3 {
+            color: #f5f5f5;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .error-content p {
+            color: #d3d3d3;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .suggestion {
+            background: rgba(45, 45, 45, 0.6);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border-left: 4px solid #a9a9a9;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: left;
+        }
+
+        .suggestion i.fas.fa-lightbulb {
+            color: #ffa500;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .suggestion span {
+            color: #d3d3d3;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="navbar-brand">
+                <i class="fas fa-book-reader"></i>
+                My Book Recommender
+            </a>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/recommend"><i class="fas fa-star"></i> Recommend</a></li>
+                <li><a href="#"><i class="fas fa-envelope"></i> Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1><i class="fas fa-magic"></i> Recommend Books</h1>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-form">
+            <form action="/recommend_books" method="post">
+                <input name="user_input" type="text" class="form-control" placeholder="Enter a book title you love...">
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-search"></i> Find Similar Books
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Grid -->
+        {% if data %}
+        <div class="results-grid">
+            {% for i in data %}
+            <div class="book-card fade-in" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                <img class="card-img-top" src="{{ i[2] }}" alt="{{ i[0] }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop&auto=format&q=80'">
+                <h4 class="book-title">{{ i[0] }}</h4>
+                <p class="book-author">by {{ i[1] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif error_message %}
+        <!-- Error Message -->
+        <div class="error-message">
+            <div class="error-content">
+                <i class="fas fa-search"></i>
+                <h3>Book Not Found</h3>
+                <p>{{ error_message }}</p>
+                <div class="suggestion">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Try searching for popular titles like "Harry Potter", "To Kill a Mockingbird", or "1984"</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('bgAnimation');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Add click animation to cards
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.book-card')) {
+                    const card = e.target.closest('.book-card');
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        card.style.transform = '';
+                    }, 150);
+                }
+            });
+
+            // Add focus effects to form
+            const formControl = document.querySelector('.form-control');
+            if (formControl) {
+                formControl.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+                
+                formControl.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
